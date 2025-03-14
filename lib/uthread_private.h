@@ -8,6 +8,14 @@
 
 #include "TCB.h"
 
+enum State
+{
+    READY,
+    RUNNING,
+    BLOCK,
+    WAITING
+};
+
 extern TCB *running; // The "Running" thread
 
 // Switch to the next thread on the ready queue
@@ -22,6 +30,9 @@ void switchToThread(TCB *tcb);
 
 // Add the provided thread to the ready queue
 void addToReady(TCB *th);
+
+//Not from starter code
+void changeState(TCB *th, State state);
 
 // Disable/enable interrupts
 void disableInterrupts();

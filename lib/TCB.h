@@ -20,7 +20,8 @@ enum State
 {
     READY,
     RUNNING,
-    BLOCK
+    BLOCK,
+    WAITING
 };
 
 /*

@@ -1,53 +1,72 @@
-/*
- *
- */
-
 #include "TCB.h"
 #include <cassert>
+#include <ucontext.h>
 
-TCB::TCB(int tid, Priority pr, void *(*start_routine)(void *arg), void *arg, State state) : _tid(tid), _pr(pr), _quantum(0), _state(state), _lock_count(0)
+
+// private:
+// 	int _tid;               // The thread id number.
+// 	Priority _pr;           // The priority of the thread (Red, orange or green)
+// 	int _quantum;           // The time interval, as explained in the pdf.
+// 	State _state;           // The state of the thread
+// 	char* _stack;           // The thread's stack
+
+
+TCB::TCB(int tid, Priority pr, void *(*start_routine)(void *arg), void *arg, State state)
 {
-    // TODO
+    _tid = tid;
+    _state = state;
+    _quantum = 0;
+
+    getcontext(&_context);
+    
+    _context.uc_stack.ss_sp = malloc(STACK_SIZE);
+    if (_context.uc_stack.ss_sp == nullptr)
+    {
+        perror("Failed to allocate stack");
+        exit(1);
+    }
+    _stack = (char *)_context.uc_stack.ss_sp;
+    _context.uc_stack.ss_size = STACK_SIZE;
+    _context.uc_stack.ss_flags = 0;
+    
+    // Set uc_link to a cleanup function to prevent crashes
+    _context.uc_link = nullptr; // Change this if needed
+
+    // Call stub() as a wrapper function to properly call start_routine
+    makecontext(&_context, (void (*)())stub, 2, start_routine, arg);
 }
 
 TCB::~TCB()
 {
-    // TODO
+    free (_stack);
 }
 
 void TCB::setState(State state)
 {
-    // TODO
+    _state = state;
 }
 
 State TCB::getState() const
 {
-    // TODO
-    return State::RUNNING; // return statement added only to allow compilation (replace with correct code)
+    return _state;
+
 }
 
 int TCB::getId() const
 {
-    // TODO
-    return 0; // return statement added only to allow compilation (replace with correct code)
-}
-
-Priority TCB::getPriority() const
-{
-    // TODO
-    return Priority::GREEN;  // return statement added only to allow compilation (replace with correct code)
+    return _tid;
 }
 
 void TCB::increaseQuantum()
 {
-    // TODO
+    _quantum++;
 }
 
 int TCB::getQuantum() const
 {
-    // TODO
-    return 0; // return statement added only to allow compilation (replace with correct code)
+    return _quantum;
 }
+
 
 void TCB::increaseLockCount()
 {
