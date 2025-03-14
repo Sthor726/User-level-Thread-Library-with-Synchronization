@@ -31,6 +31,7 @@ void switchToThread(TCB *tcb);
 // Add the provided thread to the ready queue
 void addToReady(TCB *th);
 
+//Not from starter code
 void changeState(TCB *th, State state);
 
 // Disable/enable interrupts
