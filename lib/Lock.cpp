@@ -1,10 +1,13 @@
 #include "Lock.h"
+#include "uthread.h"
 #include "uthread_private.h"
 #include <cassert>
+
 
 Lock::Lock() : held(false)
 {
     // Nothing to do
+    // spinlock = new SpinLock();
 }
 
 // Attempt to acquire lock. Grab lock if available, otherwise thread is
@@ -25,13 +28,13 @@ void Lock::lock()
     value = BUSY;
     }
     */
-
+    // spinlock->lock();
     if (held)
     {
         // Add the thread to the waiting queue
         // change state to WAITING
         entrance_queue.push(running);
-        changeState(running, State::WAITING);
+        running->setState(State::BLOCK);
 
         // Switch to the next thread
         // Remove from ready queue, switch and change state to RUNNING - switchThreads() does all the work ?
@@ -41,6 +44,8 @@ void Lock::lock()
     {
         held = true;
     }
+    // spinlock->unlock();
+    enableInterrupts();
 }
 
 // Unlock the lock. Wake up a blocked thread if any is waiting to acquire the
@@ -58,13 +63,13 @@ void Lock::unlock()
     value = FREE;
     }
     */
-
+    // spinlock->lock();
     if (!entrance_queue.empty())
     {
         TCB *next = entrance_queue.front();
         entrance_queue.pop();
 
-        changeState(next, State::READY);
+        running->setState(State::READY);
 
         addToReady(next);
     }
@@ -72,7 +77,8 @@ void Lock::unlock()
     {
         held = false;
     }
-   enableInterrupts();
+    // spinlock->unlock();
+    enableInterrupts();
 
 }
 
@@ -83,12 +89,13 @@ void Lock::_unlock()
 {
 
     // Is this the same ??
+    // spinlock->lock();
     if (!entrance_queue.empty())
     {
         TCB *next = entrance_queue.front();
         entrance_queue.pop();
 
-        changeState(next, State::READY);
+        running->setState(State::READY);
 
         addToReady(next);
     }
@@ -96,6 +103,7 @@ void Lock::_unlock()
     {
         held = false;
     }
+    // spinlock->unlock();
 }
 
 // Let the lock know that it should switch to this thread after the lock has

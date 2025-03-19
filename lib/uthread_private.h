@@ -8,15 +8,20 @@
 
 #include "TCB.h"
 
-enum State
-{
-    READY,
-    RUNNING,
-    BLOCK,
-    WAITING
-};
+// enum State
+// {
+//     READY,
+//     RUNNING,
+//     BLOCK,
+//     WAITING
+// };
+
+
+
 
 extern TCB *running; // The "Running" thread
+
+
 
 // Switch to the next thread on the ready queue
 // NOTE: switchThreads does not move the running thread to another queue. This
@@ -31,11 +36,14 @@ void switchToThread(TCB *tcb);
 // Add the provided thread to the ready queue
 void addToReady(TCB *th);
 
-//Not from starter code
-void changeState(TCB *th, State state);
 
 // Disable/enable interrupts
 void disableInterrupts();
 void enableInterrupts();
+
+
+static TCB *popReady();
+static void _uthread_increase_priority(TCB *tcb);
+static void _uthread_decrease_priority(TCB *tcb);
 
 #endif // UTHREAD_PRIVATE

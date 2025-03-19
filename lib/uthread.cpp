@@ -49,16 +49,15 @@ typedef struct join_queue_entry
 	int waiting_for_tid; // TID this thread is waiting on
 } join_queue_entry_t;
 
-typedef struct runningTCB {
-	int tid;
-	TCB *tcb;
-} runningTCB;
+
 
 static deque<TCB *> ready_queue;
 static deque<TCB *> blocked_queue;
 static deque<join_queue_entry_t *> join_queue;
 static deque<finished_queue_entry_t> finished_queue;
-static runningTCB *currentTCB;
+//static runningTCB *currentTCB;
+
+
 
 struct itimerval timer;
 struct sigaction sa;
@@ -68,9 +67,7 @@ struct sigaction sa;
 static int mostRecentTid = 0;
 static int total_quantums = 0;
 
-static TCB *popReady();
-static void _uthread_increase_priority(TCB *tcb);
-static void _uthread_decrease_priority(TCB *tcb);
+
 
 /**
  * function responsible for printing each kind of error
@@ -99,26 +96,6 @@ static void setTime()
 }
 
 /*
- * returns and remove from Ready the first thread in the queue of the given priority.
- */
-TCB *getReady(int pr)
-{
-    // TODO
-    return nullptr;  // return statement added only to allow compilation (replace with correct code)
-}
-
-/*
- * returns the thread with the highest priority from Ready and removes it from there.
- * returns NULL in case there are no threads in Ready.
- */
-TCB *popReady()
-{
-    // TODO
-
-    return NULL;  // return statement added only to allow compilation (replace with correct code)
-}
-
-/*
  * Translates the priority of the given tid from Enum to int.
  * Returns the int value of the priority.
  */
@@ -128,13 +105,6 @@ int translatePriority(int tid)
     return 0;  // return statement added only to allow compilation (replace with correct code)
 }
 
-/*
- * removes the thread with the given tid from blocked.
- */
-void removeFromBlock(int tid)
-{
-    // TODO
-}
 
 /*
  * Moves any threads that have joined on tid to the ready queue
@@ -150,13 +120,6 @@ void switchToThread(TCB *next)
     // TODO
 }
 
-/**
- * switch between running thread and the this thread
- */
-static void timeHandler(int signum)
-{
-    // TODO
-}
 
 /*=================================================================================================
  * ======================================Library Functions=========================================
