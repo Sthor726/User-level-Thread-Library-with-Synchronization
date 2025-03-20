@@ -177,7 +177,7 @@ static void startInterruptTimer()
 	//get_time_slice();
 }
 
-static void disableInterrupts()
+void disableInterrupts()
 {
 	// cout << "Disabling interrupts " << uthread_self() << "\n";
 	//get_time_slice()
@@ -187,7 +187,7 @@ static void disableInterrupts()
 	}
 }
 
-static void enableInterrupts()
+void enableInterrupts()
 {
 	// cout << "Enabling interrupts " << uthread_self() << "\n";
 	//get_time_slice();
@@ -282,7 +282,7 @@ TCB* removeFromFinishedQueue(int tid)
 
 
 // asume that inerputs are disabled before we enter switch threads
-static void switchThreads()
+void switchThreads()
 {
 	disableInterrupts();
     int currentThread = uthread_self();

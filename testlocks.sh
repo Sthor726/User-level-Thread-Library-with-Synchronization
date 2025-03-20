@@ -1,5 +1,4 @@
 make clean
 make
-gcc -o testlocks tests/testlocks.cpp
-./testlocks
+./lock_test 20 20
 

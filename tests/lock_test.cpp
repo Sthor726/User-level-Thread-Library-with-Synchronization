@@ -1,9 +1,11 @@
 #include "../lib/uthread.h"
 #include "../lib/Lock.h"
 #include "../lib/CondVar.h"
+#include "../lib/SpinLock.h"
 #include <cassert>
 #include <cstdlib>
 #include <iostream>
+#include <chrono>
 
 using namespace std;
 
@@ -20,6 +22,7 @@ static int item_count = 0;
 
 // Shared buffer synchronization
 static Lock buffer_lock;
+static SpinLock spinlock;
 // static CondVar need_space_cv;
 // static CondVar need_item_cv;
 
@@ -57,17 +60,36 @@ void assert_buffer_invariants()
 
 void *producer(void *arg)
 {
-    while (true)
+
+    bool spinlockflag = *(static_cast<bool *>(arg));
+    bool done = false;
+    while (!done)
     {
-        buffer_lock.lock();
+        if (spinlockflag) {
+            spinlock.lock();
+        }
+        else {
+            buffer_lock.lock();
+        }
+        
 
         // Wait for room in the buffer if needed
         // NOTE: Assuming Mesa semantics
         while (item_count == SHARED_BUFFER_SIZE)
         {
-            buffer_lock.unlock();
+            if (spinlockflag) {
+                spinlock.unlock();
+            }
+            else {
+                buffer_lock.unlock();
+            }
             uthread_yield();
-            buffer_lock.lock();
+            if (spinlockflag) {
+                spinlock.lock();
+            }
+            else {
+                buffer_lock.lock();
+            }
         }
 
         // Make sure synchronization is working correctly
@@ -82,9 +104,18 @@ void *producer(void *arg)
         produced_count++;
 
     
+        if (produced_count >= 1000000)
+        {
+            done = true;
+        }
 
         producer_in_critical_section = false;
-        buffer_lock.unlock();
+        if (spinlockflag) {
+            spinlock.unlock();
+        }
+        else {
+            buffer_lock.unlock();
+        }
 
         // Randomly give another thread a chance
         if ((rand() % 100) < RANDOM_YIELD_PERCENT)
@@ -98,17 +129,34 @@ void *producer(void *arg)
 
 void *consumer(void *arg)
 {
-    while (true)
+    bool spinlockflag = *(static_cast<bool *>(arg));
+    bool done = false;
+    while (!done)
     {
-        buffer_lock.lock();
+        if (spinlockflag) {
+            spinlock.lock();
+        }
+        else {
+            buffer_lock.lock();
+        }
 
         // Wait for an item in the buffer if needed
         // NOTE: Assuming Mesa semantics
         while (item_count == 0)
         {
-            buffer_lock.unlock();
+            if (spinlockflag) {
+                spinlock.unlock();
+            }
+            else {
+                buffer_lock.unlock();
+            }
             uthread_yield();
-            buffer_lock.lock();
+            if (spinlockflag) {
+                spinlock.lock();
+            }
+            else {
+                buffer_lock.lock();
+            }
         }
 
         // Make sure synchronization is working correctly
@@ -128,9 +176,19 @@ void *consumer(void *arg)
             cout << "Consumed " << consumed_count << " items" << endl;
         }
 
-        
+        if (consumed_count >= 1000000)
+        {
+            done = true;
+        }
+
+
         consumer_in_critical_section = false;
-        buffer_lock.unlock();
+        if (spinlockflag) {
+            spinlock.unlock();
+        }
+        else {
+            buffer_lock.unlock();
+        }
 
         // Randomly give another thread a chance
         if ((rand() % 100) < RANDOM_YIELD_PERCENT)
@@ -168,11 +226,15 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
+    // start timer
+    auto start = chrono::high_resolution_clock::now();
+
+    bool* spinlockflag = new bool(false);
     // Create producer threads
     int *producer_threads = new int[producer_count];
     for (int i = 0; i < producer_count; i++)
     {
-        producer_threads[i] = uthread_create(producer, nullptr);
+        producer_threads[i] = uthread_create(producer, spinlockflag);
         if (producer_threads[i] < 0)
         {
             cerr << "Error: uthread_create producer" << endl;
@@ -183,15 +245,12 @@ int main(int argc, char *argv[])
     int *consumer_threads = new int[consumer_count];
     for (int i = 0; i < consumer_count; i++)
     {
-        consumer_threads[i] = uthread_create(consumer, nullptr);
+        consumer_threads[i] = uthread_create(consumer, spinlockflag);
         if (consumer_threads[i] < 0)
         {
             cerr << "Error: uthread_create consumer" << endl;
         }
     }
-
-    // NOTE: Producers and consumers run until killed but if we wanted to
-    //       join on them do the following
 
     // Wait for all producers to complete
     for (int i = 0; i < producer_count; i++)
@@ -213,8 +272,88 @@ int main(int argc, char *argv[])
         }
     }
 
+    // end timer
+    auto end = chrono::high_resolution_clock::now();
+    auto lockduration = chrono::duration_cast<chrono::microseconds>(end - start);
+    cout << "Time taken by lock: " << lockduration.count() << " microseconds" << endl;
+
     delete[] producer_threads;
     delete[] consumer_threads;
+
+
+    //RESET BUFFER
+    head = 0;
+    tail = 0;
+    item_count = 0;
+    produced_count = 0;
+    consumed_count = 0;
+
+
+    // start timer
+    start = chrono::high_resolution_clock::now();
+
+    *spinlockflag = true;
+    // Create producer threads
+    int *new_producer_threads = new int[producer_count];
+    for (int i = 0; i < producer_count; i++)
+    {
+        new_producer_threads[i] = uthread_create(producer, spinlockflag);
+        if (new_producer_threads[i] < 0)
+        {
+            cerr << "Error: uthread_create producer" << endl;
+        }
+    }
+
+    // Create consumer threads
+    int *new_consumer_threads = new int[consumer_count];
+    for (int i = 0; i < consumer_count; i++)
+    {
+        new_consumer_threads[i] = uthread_create(consumer, spinlockflag);
+        if (new_consumer_threads[i] < 0)
+        {
+            cerr << "Error: uthread_create consumer" << endl;
+        }
+    }
+
+    // Wait for all producers to complete
+    for (int i = 0; i < producer_count; i++)
+    {
+        int result = uthread_join(new_producer_threads[i], nullptr);
+        if (result < 0)
+        {
+            cerr << "Error: uthread_join producer" << endl;
+        }
+    }
+
+    // Wait for all consumers to complete
+    for (int i = 0; i < consumer_count; i++)
+    {
+        int result = uthread_join(new_consumer_threads[i], nullptr);
+        if (result < 0)
+        {
+            cerr << "Error: uthread_join consumer" << endl;
+        }
+    }
+
+    // end timer
+    end = chrono::high_resolution_clock::now();
+    auto spinlockduration = chrono::duration_cast<chrono::microseconds>(end - start);
+    cout << "Time taken by spinlock: "
+         << spinlockduration.count() << " microseconds" << endl << endl;
+
+    float percent = float(lockduration.count()) / spinlockduration.count() * 100;
+
+    cout << "lock time: " << lockduration.count() << " microseconds" << endl;
+    cout << "spinlock time: " << spinlockduration.count() << " microseconds" << endl;
+    cout << "spinlock was faster by  " << percent << " percent" << endl;
+
+
+
+
+    delete[] new_producer_threads;
+    delete[] new_consumer_threads;
+
+
 
     return 0;
 }
