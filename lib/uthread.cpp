@@ -57,12 +57,8 @@ static deque<join_queue_entry_t *> join_queue;
 static deque<finished_queue_entry_t> finished_queue;
 //static runningTCB *currentTCB;
 
-
-
 struct itimerval timer;
 struct sigaction sa;
-
-
 
 static int mostRecentTid = 0;
 static int total_quantums = 0;

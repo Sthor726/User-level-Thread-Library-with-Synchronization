@@ -347,13 +347,8 @@ int main(int argc, char *argv[])
     cout << "spinlock time: " << spinlockduration.count() << " microseconds" << endl;
     cout << "spinlock was faster by  " << percent << " percent" << endl;
 
-
-
-
     delete[] new_producer_threads;
     delete[] new_consumer_threads;
-
-
 
     return 0;
 }
