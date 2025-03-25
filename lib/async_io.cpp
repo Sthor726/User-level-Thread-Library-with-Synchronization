@@ -21,9 +21,22 @@ ssize_t async_read(int fd, void *buf, size_t count, int offset)
     .aio_nbytes = count,
     .aio_offset = offset};
 
+    //stage io request
+    aio_read(&async_read_req);
 
-    // TODO
-    return 0;  // return statement added only to allow compilation (replace with correct code)
+    //check if request is still in progress
+    while (aio_error(&async_read_req) == EINPROGRESS) {
+        //give up processor if request is still in progress
+        uthread_yield();
+    }
+    //check if request failed
+    if (aio_error(&async_read_req) != 0) {
+        return -1;
+    }
+
+    //return result of read
+    return aio_return(&async_read_req);
+
 }
 
 // Carry out an asynchronous write request where this thread will be blocked
@@ -44,7 +57,17 @@ ssize_t async_write(int fd, void *buf, size_t count, int offset)
     .aio_nbytes = count,
     .aio_offset = offset};
 
+    //stage io request
+    aio_write(&async_write_req);
 
-    // TODO
-    return 0;  // return statement added only to allow compilation (replace with correct code)
+    //check if request is still in progress
+    while (aio_error(&async_write_req) == EINPROGRESS) {
+        uthread_yield();
+    }
+    if (aio_error(&async_write_req) != 0) {
+        return -1;
+    }
+    
+    //return result of read
+    return aio_return(&async_write_req);
 }
