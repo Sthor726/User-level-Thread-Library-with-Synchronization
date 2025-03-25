@@ -6,11 +6,12 @@ DEPS = TCB.h uthread.h uthread_private.h Lock.h CondVar.h SpinLock.h async_io.h
 OBJ_SOLN = ./solution/TCB_soln.o ./solution/uthread_soln.o ./lib/Lock.o ./lib/CondVar.o ./lib/SpinLock.o ./lib/async_io.o
 MAIN_OBJ_UTHRAD_SYNC = ./tests/uthread_sync_demo.o
 MAIN_OBJ_LOCK_TEST = ./tests/lock_test.o
+MAIN_OBJ_ASYNC_TEST = ./tests/async_test.o
 
 %.o: %.cpp $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-all: uthread-sync-demo-from-soln lock_test
+all: uthread-sync-demo-from-soln lock_test async_test
 
 uthread-sync-demo-from-soln: $(OBJ_SOLN) $(MAIN_OBJ_UTHRAD_SYNC)
 	$(CC) -o uthread-sync-demo $^ $(CFLAGS)
@@ -20,6 +21,9 @@ uthread-sync-demo-from-soln: $(OBJ_SOLN) $(MAIN_OBJ_UTHRAD_SYNC)
 
 lock_test: $(OBJ_SOLN) $(MAIN_OBJ_LOCK_TEST)
 	$(CC) -o lock_test $^ $(CFLAGS)
+
+async_test: $(OBJ_SOLN) $(MAIN_OBJ_ASYNC_TEST)
+	$(CC) -o async_test $^ $(CFLAGS)
 
 .PHONY: clean
 

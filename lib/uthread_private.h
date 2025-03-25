@@ -8,20 +8,8 @@
 
 #include "TCB.h"
 
-// enum State
-// {
-//     READY,
-//     RUNNING,
-//     BLOCK,
-//     WAITING
-// };
-
-
-
 
 extern TCB *running; // The "Running" thread
-
-
 
 // Switch to the next thread on the ready queue
 // NOTE: switchThreads does not move the running thread to another queue. This

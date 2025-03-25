@@ -17,8 +17,12 @@ void CondVar::wait(Lock &lock)
 
     queue.push(currentTCB);
 
-    uthread_suspend(uthread_self());
     lock.unlock();
+    if (uthread_suspend(uthread_self()) == -1)
+    {
+        std::cout << "Error: uthread_suspend" << std::endl;
+        assert(false);
+    }
     uthread_yield();
     lock.lock();
 }
