@@ -43,4 +43,7 @@ echo "Running lock test with 20 consumers, 20 producers and 10 for time wasting 
 echo "================================================================================"
 echo ""
 ./lock_test 20 20 10
-
+echo ""
+echo "================"
+echo "Testing complete"
+echo "================"

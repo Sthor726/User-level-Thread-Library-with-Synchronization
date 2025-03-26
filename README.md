@@ -2,6 +2,10 @@
 
 ***For this project we utilized the instructor provided versions of uthread and TCB.***
 
+To run all test run '''./test.sh''' from the main directory
+This is shell script that will make clean, make all, then run all tests
+Consider redirecting output into a log because it is long '''./test.sh | log.txt'''
+
 ## Lock vs Spinlock
 
 **Lock Tests**
@@ -77,5 +81,5 @@ Percent speedup for asynchronous IO: -102.621%
 
 - **How does the amount of other available thread work affect the performance of each type of I/O? Explain with results.**  
 
-  Asynchronos IO performs much better when there are many available threads, while synchronous IO performs better when there are few threads. You can see this in the tests, where tests 3 and 4 show poor asynchronous performance when there are only 3 threads, while in tests 1 and 2 it provides a speedup. When there are few threads, yielding while waiting for IO operations doesn't provide much benefit and instead adds the overhead of context switching to a new thread.
+  Asynchronos IO performs much better when there are many available threads, while synchronous IO performs better when there are few threads. You can see this in the tests, where tests 3 and 4 show poor asynchronous performance when there are only 3 threads, while in tests 1 and 2 it provides a speedup. When there are few threads, yielding while waiting for IO operations doesn't provide much benefit because there are less free threads on average and instead adds the overhead of context switching to a new thread.
 

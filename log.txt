@@ -1,0 +1,87 @@
+rm -f ./lib/*.o
+rm -f ./tests/*.o
+rm -f *.o uthread-sync-demo lock_test
+g++    -c -o lib/Lock.o lib/Lock.cpp
+g++    -c -o lib/CondVar.o lib/CondVar.cpp
+g++    -c -o lib/SpinLock.o lib/SpinLock.cpp
+g++    -c -o lib/async_io.o lib/async_io.cpp
+g++    -c -o tests/uthread_sync_demo.o tests/uthread_sync_demo.cpp
+g++ -o uthread-sync-demo solution/TCB_soln.o solution/uthread_soln.o lib/Lock.o lib/CondVar.o lib/SpinLock.o lib/async_io.o tests/uthread_sync_demo.o -g -lrt --std=c++14
+g++    -c -o tests/lock_test.o tests/lock_test.cpp
+g++ -o lock_test solution/TCB_soln.o solution/uthread_soln.o lib/Lock.o lib/CondVar.o lib/SpinLock.o lib/async_io.o tests/lock_test.o -g -lrt --std=c++14
+g++    -c -o tests/async_test.o tests/async_test.cpp
+g++ -o async_test solution/TCB_soln.o solution/uthread_soln.o lib/Lock.o lib/CondVar.o lib/SpinLock.o lib/async_io.o tests/async_test.o -g -lrt --std=c++14
+g++    -c -o tests/cond_var_test.o tests/cond_var_test.cpp
+g++ -o cond_var_test solution/TCB_soln.o solution/uthread_soln.o lib/Lock.o lib/CondVar.o lib/SpinLock.o lib/async_io.o tests/cond_var_test.o -g -lrt --std=c++14
+================================
+Running coondition variable test
+================================
+
+Main thread starting.
+Thread 1 is waiting.
+Thread 2 is waiting.
+Thread 3 is waiting.
+Thread 4 is waiting.
+Thread 5 is waiting.
+Main thread signaling one thread.
+Thread 1 is awake.
+Main thread broadcasting to all threads.
+Thread 2 is awake.
+Thread 3 is awake.
+Thread 4 is awake.
+Thread 5 is awake.
+
+====================================================================
+Running async test with 5000 bytes for message length and 50 threads
+====================================================================
+
+=============================
+ Message Length: 5000 bytes
+ Number of Threads: 50
+=============================
+Sync I/O time: 2852 microseconds
+Async I/O time: 25039 microseconds
+Percent speedup for asynchronous IO: -777.945%
+
+==================================================================
+Running async test with 10 bytes for message length and 50 threads
+==================================================================
+
+=============================
+ Message Length: 10 bytes
+ Number of Threads: 50
+=============================
+Sync I/O time: 12158 microseconds
+Async I/O time: 113617 microseconds
+Percent speedup for asynchronous IO: -834.504%
+
+===================================================================
+Running async test with 5000 bytes for message length and 3 threads
+===================================================================
+
+=============================
+ Message Length: 10 bytes
+ Number of Threads: 3
+=============================
+Sync I/O time: 227 microseconds
+Async I/O time: 1567 microseconds
+Percent speedup for asynchronous IO: -590.308%
+
+==================================================================
+Running async test with 10 bytes for message length and 3 threads
+==================================================================
+
+=============================
+ Message Length: 10 bytes
+ Number of Threads: 3
+=============================
+Sync I/O time: 207 microseconds
+Async I/O time: 953 microseconds
+Percent speedup for asynchronous IO: -360.386%
+
+==================================================================================
+Running lock test with 20 consumers, 20 producers and 
+1000 for time wasting amount
+Might take a while to run
+==================================================================================
+
