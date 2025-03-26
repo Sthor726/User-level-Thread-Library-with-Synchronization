@@ -62,6 +62,5 @@ int main() {
         uthread_join(tids[i], nullptr);
     }
     
-    cout << "Main thread exiting." << endl;
     return 0;
 }

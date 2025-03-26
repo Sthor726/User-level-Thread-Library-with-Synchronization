@@ -185,11 +185,11 @@ void *consumer(void *arg)
         item_count--;
         consumed_count++;
 
-        // Print an update periodically
-        if ((consumed_count % PRINT_FREQUENCY) == 0)
-        {
-            cout << "Consumed " << consumed_count << " items" << endl;
-        }
+        // // Print an update periodically
+        // if ((consumed_count % PRINT_FREQUENCY) == 0)
+        // {
+        //     cout << "Consumed " << consumed_count << " items" << endl;
+        // }
 
         if (consumed_count >= 1000000)
         {
@@ -291,7 +291,7 @@ int main(int argc, char *argv[])
     // end timer
     auto end = chrono::high_resolution_clock::now();
     auto lockduration = chrono::duration_cast<chrono::microseconds>(end - start);
-    cout << "Time taken by lock: " << lockduration.count() << " microseconds" << endl;
+    // cout << "Time taken by lock: " << lockduration.count() << " microseconds" << endl;
 
     delete[] producer_threads;
     delete[] consumer_threads;
@@ -354,8 +354,7 @@ int main(int argc, char *argv[])
     // end timer
     end = chrono::high_resolution_clock::now();
     auto spinlockduration = chrono::duration_cast<chrono::microseconds>(end - start);
-    cout << "Time taken by spinlock: "
-         << spinlockduration.count() << " microseconds" << endl << endl;
+    // cout << "Time taken by spinlock: "<< spinlockduration.count() << " microseconds" << endl << endl;
 
     float percent = float(lockduration.count()) / spinlockduration.count() * 100;
 
