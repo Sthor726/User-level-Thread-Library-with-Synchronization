@@ -7,11 +7,12 @@ OBJ_SOLN = ./solution/TCB_soln.o ./solution/uthread_soln.o ./lib/Lock.o ./lib/Co
 MAIN_OBJ_UTHRAD_SYNC = ./tests/uthread_sync_demo.o
 MAIN_OBJ_LOCK_TEST = ./tests/lock_test.o
 MAIN_OBJ_ASYNC_TEST = ./tests/async_test.o
+MAIN_OBJ_COND_VAR_TEST = ./tests/cond_var_test.o
 
 %.o: %.cpp $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-all: uthread-sync-demo-from-soln lock_test async_test
+all: uthread-sync-demo-from-soln lock_test async_test cond_var_test
 
 uthread-sync-demo-from-soln: $(OBJ_SOLN) $(MAIN_OBJ_UTHRAD_SYNC)
 	$(CC) -o uthread-sync-demo $^ $(CFLAGS)
@@ -24,6 +25,9 @@ lock_test: $(OBJ_SOLN) $(MAIN_OBJ_LOCK_TEST)
 
 async_test: $(OBJ_SOLN) $(MAIN_OBJ_ASYNC_TEST)
 	$(CC) -o async_test $^ $(CFLAGS)
+
+cond_var_test: $(OBJ_SOLN) $(MAIN_OBJ_COND_VAR_TEST)
+	$(CC) -o cond_var_test $^ $(CFLAGS)
 
 .PHONY: clean
 
