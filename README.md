@@ -27,9 +27,9 @@ spinlock was faster by  173.034 percent
 - **How does the size of a critical section affect the performance of each type of lock? Explain with results.**
   As we increase the size of the critical section, the spinlock becomes less and less effective compared to the lock. As seen in the tests above, when we increased the time in the critical section, the percent speedup of the spinlock was greatly reduced. This is because a context switch becomes more worth the resources if we are going to be spinning for a long period of time.
 
-- **uthread is a uniprocessor user-thread library. How might the performance of the lock types be affected if they could be used in parallel by a multi-core system?**  
+- **uthread is a uniprocessor user-thread library. How might the performance of the lock types be affected if they could be used in parallel by a multi-core system?**
+  Spinlocks should become more effective on multiprocessors because it no longer blocks any and all threads from executing while it is spinning. It will still waste CPU cycles, but there are other cores available to run other threads.
 
-- **Are there any other interesting results from your testing?**  
 
 ## Asynchronous vs Synchronous IO
 
