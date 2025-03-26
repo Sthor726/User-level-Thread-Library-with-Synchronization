@@ -45,6 +45,18 @@ Percent speedup for asynchronous IO: -106.974%
 Sync I/O time: 7973 microseconds
 Async I/O time: 16155 microseconds
 Percent speedup for asynchronous IO: -102.621%
+
+3rd arg was 1000
+
+lock time: 14930293 microseconds
+spinlock time: 15819360 microseconds
+spinlock was faster by  94.3799 percent
+
+time waster was 10
+lock time: 10066642 microseconds
+spinlock time: 5817716 microseconds
+spinlock was faster by  173.034 percent
+
 ```
 
 - **Which I/O type provides better performance in your testing? Why do you think that is?**  

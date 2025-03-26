@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <chrono>
+#include <cmath>
 
 using namespace std;
 
@@ -23,6 +24,7 @@ static int item_count = 0;
 // Shared buffer synchronization
 static Lock buffer_lock;
 static SpinLock spinlock;
+static int workamount;
 // static CondVar need_space_cv;
 // static CondVar need_item_cv;
 
@@ -31,6 +33,16 @@ static int produced_count = 0;
 static int consumed_count = 0;
 static bool producer_in_critical_section = false;
 static bool consumer_in_critical_section = false;
+
+
+double timewaster(int n = 1000000) {
+    double y;
+    for (int i = 0; i < n; ++i) {
+        y += sqrt(i);
+    }
+    return y;
+}
+
 
 // Verify the buffer is in a good state
 void assert_buffer_invariants()
@@ -96,6 +108,9 @@ void *producer(void *arg)
         assert(!producer_in_critical_section);
         producer_in_critical_section = true;
         assert_buffer_invariants();
+
+        // do some hard work to test performance of different sized critcal sections 
+        timewaster(workamount);
 
         // Place an item in the buffer
         buffer[head] = uthread_self();
@@ -202,15 +217,16 @@ void *consumer(void *arg)
 
 int main(int argc, char *argv[])
 {
-    if (argc != 3)
+    if (argc != 4)
     {
-        cerr << "Usage: ./uthread-sync-demo <num_producer> <num_consumer>" << endl;
+        cerr << "Usage: ./uthread-sync-demo <num_producer> <num_consumer> <work_amount>" << endl;
         cerr << "Example: ./uthread-sync-demo 20 20" << endl;
         exit(1);
     }
 
     int producer_count = atoi(argv[1]);
     int consumer_count = atoi(argv[2]);
+    workamount = atoi(argv[3]);
 
     if ((producer_count + consumer_count) > 99)
     {
