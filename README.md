@@ -1,5 +1,7 @@
 # User-level-Thread-Library-with-Synchronization
 
+***For this project we utilized the instructor provided versions of uthread and TCB.***
+
 ## Lock vs Spinlock
 
 - **Which lock provides better performance in your testing? Why do you think that is?**  
@@ -12,19 +14,7 @@
 
 ## Asynchronous vs Synchronous IO
 
-- **Which I/O type provides better performance in your testing? Why do you think that is?**  
-
-  In a typical setting, asynchronous IO performed better in our testing. Instead of threads blocking during IO operations, they instead yield the processor while they are waiting. This allows for more work to be done when there are large amounts of IO and other available threads to perform their own work.
-
-- **How does the amount of I/O affect the performance of each type of I/O? Explain with results.**  
-
-  As you can see from the first 2 tests with 50 threads. Asynchronous IO provides a greater speedup when there is a larger message length. When there is more IO, yielding provides a greater benefit, since there is more time spent waiting on our IO operations to finish.
-
-- **How does the amount of other available thread work affect the performance of each type of I/O? Explain with results.**  
-
-  Asynchronos IO performs much better when there are many available threads, while synchronous IO performs better when there are few threads. You can see this in the tests, where tests 3 and 4 show poor asynchronous performance when there are only 3 threads, while in tests 1 and 2 it provides a speedup. When there are few threads, yielding while waiting for IO operations doesn't provide much benefit and instead adds the overhead of context switching to a new thread.
-
-
+**IO Tests**
 ```
 Running tests...
 =============================
@@ -56,3 +46,16 @@ Sync I/O time: 7973 microseconds
 Async I/O time: 16155 microseconds
 Percent speedup for asynchronous IO: -102.621%
 ```
+
+- **Which I/O type provides better performance in your testing? Why do you think that is?**  
+
+  In a typical setting, asynchronous IO performed better in our testing. Instead of threads blocking during IO operations, they instead yield the processor while they are waiting. This allows for more work to be done when there are large amounts of IO and other available threads to perform their own work.
+
+- **How does the amount of I/O affect the performance of each type of I/O? Explain with results.**  
+
+  As you can see from the first 2 tests with 50 threads. Asynchronous IO provides a greater speedup when there is a larger message length. When there is more IO, yielding provides a greater benefit, since there is more time spent waiting on our IO operations to finish.
+
+- **How does the amount of other available thread work affect the performance of each type of I/O? Explain with results.**  
+
+  Asynchronos IO performs much better when there are many available threads, while synchronous IO performs better when there are few threads. You can see this in the tests, where tests 3 and 4 show poor asynchronous performance when there are only 3 threads, while in tests 1 and 2 it provides a speedup. When there are few threads, yielding while waiting for IO operations doesn't provide much benefit and instead adds the overhead of context switching to a new thread.
+
