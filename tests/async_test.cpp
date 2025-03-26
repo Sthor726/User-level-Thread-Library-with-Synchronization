@@ -11,15 +11,17 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <fstream>
+#include <queue>
 
 
 using namespace std;
 
 #define UTHREAD_TIME_QUANTUM 10000
 #define SHARED_BUFFER_SIZE 10
-#define PRINT_FREQUENCY 1000
-#define TOTAL_WORK 5000
+#define PRINT_FREQUENCY 10
+#define TOTAL_WORK 30
 #define RANDOM_YIELD_PERCENT 50
+#define MESSAGELEN 1000
 
 // Shared buffer
 static int buffer[SHARED_BUFFER_SIZE];
@@ -41,9 +43,11 @@ static bool consumer_in_critical_section = false;
 
 int fd;
 FILE* file;
-const char* message = "Hello World\n";
-const char* nullmessage = "XXXXXXXXXXX\n"; // same size as above
-size_t MESSAGELEN = strlen(message);
+// const char* message[] = "Hello World\n";
+// const char* nullmessage = "XXXXXXXXXXX\n"; // same size as above
+// size_t MESSAGELEN = strlen(message);
+ 
+queue <char *> text;
 
 // Verify the buffer is in a good state
 void assert_buffer_invariants()
@@ -71,13 +75,11 @@ void assert_buffer_invariants()
     assert(produced_count >= consumed_count);
 }
 
-void *producer(void *arg)
-{
+void *producer(void *arg) {
 
     bool async = *(static_cast<bool *>(arg));
     bool done = false;
-    while (!done)
-    {
+    while (!done){
       
         spinlock.lock();
         // Wait for room in the buffer if needed
@@ -94,41 +96,43 @@ void *producer(void *arg)
         producer_in_critical_section = true;
         assert_buffer_invariants();
 
-        
+        char readvalue[MESSAGELEN];
         if (async)
         {
-            std::cout<< "async producer\n";
-            fd = open("async.txt", O_RDWR | O_CREAT, 0644);
+            // std::cout<< "async producer\n";
+            fd = open("long.txt", O_RDWR | O_CREAT | O_NONBLOCK, 0644);
             if (fd == -1){
                 cout << "error opening file\n";
                 cout << strerror(errno);
             }
-            if (async_write(fd, &message, MESSAGELEN, item_count * MESSAGELEN) == -1){
+            if (async_read(fd, &readvalue, MESSAGELEN, 0) == -1){
                 cout << "error writing to file\n";
                 cout << strerror(errno);
             }
 
-            if (close(fd) == -1){
-                cout << "error closing file\n";
-                cout << strerror(errno);
-            }
+            // if (close(fd) == -1){
+            //     cout << "error closing file\n";
+            //     cout << strerror(errno);
+            // }
         }
         else {
-            file = fopen("sync.txt", "w");
-            if (file == NULL){
+            int fd = open("sync.txt", O_RDWR | O_CREAT | O_NONBLOCK, 0644);
+            if (fd == -1){
                 cout << "error opening file\n";
                 cout << strerror(errno);
             }
-            if (fprintf(file, "%s", message) == -1){
+            if (read(fd, readvalue, MESSAGELEN) == -1){
                 cout << "error writing to file\n";
                 cout << strerror(errno);
             }
 
-            if (fclose(file) == -1){
-                cout << "error closing file\n";
-                cout << strerror(errno);
-            }
+            // if (close(fd) == -1){
+            //     cout << "error closing file\n";
+            //     cout << strerror(errno);
+            // }
         }
+        
+        text.push(readvalue);
 
         // Place an item in the buffer
         buffer[head] = uthread_self();
@@ -161,6 +165,7 @@ void *consumer(void *arg)
 {
     bool async = *(static_cast<bool *>(arg));
     bool done = false;
+
     while (!done)
     {
         spinlock.lock();
@@ -185,37 +190,44 @@ void *consumer(void *arg)
         consumer_in_critical_section = true;
         assert_buffer_invariants();
 
-        char* buffer = new char[MESSAGELEN];
-
+        char* writevalue = text.front();
+        text.pop();
+        string filenamestring = "outputs/output_" + std::to_string(consumed_count) + ".txt";
+        const char * filename = filenamestring.c_str();
         if (async)
         {
-            cout << "async consumer\n";
-            fd = open("async.txt", O_RDWR | O_CREAT, 0644);
+            // cout << "async consumer\n";
+
+            fd = open(filename, O_RDWR | O_CREAT | O_NONBLOCK, 0644);
             if (fd == -1){
                 cout << "error opening file\n";
                 cout << strerror(errno);
             } 
-            cout << "before read\n";
-            if (async_read(fd, &buffer, MESSAGELEN, item_count * MESSAGELEN) ==-1) {
+            // cout << "before read\n";
+            if (async_write(fd, &writevalue, MESSAGELEN, 0) ==-1) {
                 cout << "error reading from file\n";
                 cout << strerror(errno);
             }
-            cout << "after read\n";
-            if (async_write(fd, &nullmessage, MESSAGELEN, item_count * MESSAGELEN) == -1){
-                cout << "error writing to file\n";
-                cout << strerror(errno);
-            }
 
-            if (close(fd) == -1){
-                cout << "error closing file\n";
+            // if (close(fd) == -1){
+            //     cout << "error closing file\n";
+            //     cout << strerror(errno);
+            // }
+            
+        } else {
+            fd = open(filename, O_RDWR | O_CREAT | O_NONBLOCK, 0644);
+            if (fd == -1){
+                cout << "error opening file\n";
                 cout << strerror(errno);
             }
-            cout << buffer;
-        } else {
-            file = fopen("sync.txt", "w");
-            fgets(buffer, MESSAGELEN, file);
-            // fwrite(&message, sizeof(message), 1, fd); 
-            fclose(file);
+            if (write(fd, writevalue, MESSAGELEN) == -1){
+                cout << "error reading from file\n";
+                cout << strerror(errno);
+            }
+            // if (close(fd) == -1){
+            //     cout << "error closing file\n";
+            //     cout << strerror(errno);
+            // }
         }
 
         // Grab an item from the buffer
@@ -279,7 +291,7 @@ int main(int argc, char *argv[])
     // start timer
     auto start = chrono::high_resolution_clock::now();
 
-    bool* async = new bool(false);
+    bool* async = new bool(false); 
     // Create producer threads
     int *producer_threads = new int[producer_count];
     for (int i = 0; i < producer_count; i++)
@@ -324,8 +336,8 @@ int main(int argc, char *argv[])
 
     // end timer
     auto end = chrono::high_resolution_clock::now();
-    auto lockduration = chrono::duration_cast<chrono::microseconds>(end - start);
-    cout << "Time taken by sync: " << lockduration.count() << " microseconds" << endl;
+    auto syncduration = chrono::duration_cast<chrono::microseconds>(end - start);
+    cout << "Time taken by sync: " << syncduration.count() << " microseconds" << endl;
 
     delete[] producer_threads;
     delete[] consumer_threads;
@@ -387,15 +399,15 @@ int main(int argc, char *argv[])
 
     // end timer
     end = chrono::high_resolution_clock::now();
-    auto spinlockduration = chrono::duration_cast<chrono::microseconds>(end - start);
+    auto asyncduration = chrono::duration_cast<chrono::microseconds>(end - start);
     cout << "Time taken by spinlock: "
-         << spinlockduration.count() << " microseconds" << endl << endl;
+         << asyncduration.count() << " microseconds" << endl << endl;
 
-    float percent = float(lockduration.count()) / spinlockduration.count() * 100;
+    float percent = float(asyncduration.count()) / syncduration.count();
 
-    cout << "lock time: " << lockduration.count() << " microseconds" << endl;
-    cout << "spinlock time: " << spinlockduration.count() << " microseconds" << endl;
-    cout << "spinlock was faster by  " << percent << " percent" << endl;
+    cout << "sync time: " << syncduration.count() << " microseconds" << endl;
+    cout << "async time: " << asyncduration.count() << " microseconds" << endl;
+    cout << "sync was faster by a multiple of " << percent << endl;
 
     delete[] new_producer_threads;
     delete[] new_consumer_threads;

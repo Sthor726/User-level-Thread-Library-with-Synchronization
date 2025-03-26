@@ -2,6 +2,8 @@
 #include "uthread.h"
 #include <aio.h>
 #include <errno.h>
+#include <stdio.h>
+#include <iostream>
 
 // Carry out an asynchronous read request where this thread will be blocked
 // while servicing the read but other ready threads will be scheduled
@@ -58,12 +60,18 @@ ssize_t async_write(int fd, void *buf, size_t count, int offset)
     .aio_offset = offset};
 
     //stage io request
-    aio_write(&async_write_req);
+    if (aio_write(&async_write_req) == -1) {
+ 
+        return -1;
+    }
 
     //check if request is still in progress
     while (aio_error(&async_write_req) == EINPROGRESS) {
+        // std::cout << "yielding\n";
+        
         uthread_yield();
     }
+
     if (aio_error(&async_write_req) != 0) {
         return -1;
     }
