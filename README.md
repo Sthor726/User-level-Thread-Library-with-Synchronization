@@ -81,5 +81,5 @@ Percent speedup for asynchronous IO: -102.621%
 
 - **How does the amount of other available thread work affect the performance of each type of I/O? Explain with results.**  
 
-  Asynchronos IO performs much better when there are many available threads, while synchronous IO performs better when there are few threads. You can see this in the tests, where tests 3 and 4 show poor asynchronous performance when there are only 3 threads, while in tests 1 and 2 it provides a speedup. When there are few threads, yielding while waiting for IO operations doesn't provide much benefit because there are less free threads on average and instead adds the overhead of context switching to a new thread.
+  Asynchronous IO performs much better when there are many available threads, while synchronous IO performs better when there are few threads. You can see this in the tests, where tests 3 and 4 show poor asynchronous performance when there are only 3 threads, while in tests 1 and 2 it provides a speedup. When there are few threads, yielding while waiting for IO operations doesn't provide much benefit because there are less free threads on average and instead adds the overhead of context switching to a new thread.
 
