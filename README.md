@@ -4,9 +4,28 @@
 
 ## Lock vs Spinlock
 
-- **Which lock provides better performance in your testing? Why do you think that is?**  
+**Lock Tests**
+```
+=============================
+Critical section time set to 1000
+=============================
+lock time: 14930293 microseconds
+spinlock time: 15819360 microseconds
+spinlock was faster by  94.3799 percent
 
-- **How does the size of a critical section affect the performance of each type of lock? Explain with results.**  
+=============================
+Critical section time set to 10
+=============================
+lock time: 10066642 microseconds
+spinlock time: 5817716 microseconds
+spinlock was faster by  173.034 percent
+```
+
+- **Which lock provides better performance in your testing? Why do you think that is?**
+ The spinlock provided a better performance than the lock in our testing. This is because with a small critical section, it is faster for a thread to spin rather than spend the resources making a context switch.
+
+- **How does the size of a critical section affect the performance of each type of lock? Explain with results.**
+  As we increase the size of the critical section, the spinlock becomes less and less effective compared to the lock. As seen in the tests above, when we increased the time in the critical section, the percent speedup of the spinlock was greatly reduced. This is because a context switch becomes more worth the resources if we are going to be spinning for a long period of time.
 
 - **uthread is a uniprocessor user-thread library. How might the performance of the lock types be affected if they could be used in parallel by a multi-core system?**  
 
@@ -45,17 +64,6 @@ Percent speedup for asynchronous IO: -106.974%
 Sync I/O time: 7973 microseconds
 Async I/O time: 16155 microseconds
 Percent speedup for asynchronous IO: -102.621%
-
-3rd arg was 1000
-
-lock time: 14930293 microseconds
-spinlock time: 15819360 microseconds
-spinlock was faster by  94.3799 percent
-
-time waster was 10
-lock time: 10066642 microseconds
-spinlock time: 5817716 microseconds
-spinlock was faster by  173.034 percent
 
 ```
 
